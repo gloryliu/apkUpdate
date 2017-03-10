@@ -4,7 +4,7 @@ package com.glory.upgrade.library;
  * Created by liu.zhenrong on 2017/3/10.
  */
 
-public class UpdateInfo {
+public class BaseUpdateInfo {
     public String appSize;
     public String versionInfo;
     public String updateUrl;

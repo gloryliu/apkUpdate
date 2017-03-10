@@ -13,24 +13,24 @@ import android.widget.Toast;
  * Created by liu.zhenrong on 2017/3/10.
  */
 
-public class ApkUpdateTool {
-    private static ApkUpdateTool instance;
+public class ApkUpgradeTool {
+    private static ApkUpgradeTool instance;
     private Context mContext;
-    private OnUpdateListener onUpdateListener;
-    private UpdateInfo updateInfo;
+    private OnUpgradeListener onUpdateListener;
+    private BaseUpdateInfo updateInfo;
     private SharedPreferences sharedPreferences;
     private DownloadManager downloadManager;
 
-    private ApkUpdateTool(Context mContext, OnUpdateListener onUpdateListener) {
+    private ApkUpgradeTool(Context mContext, OnUpgradeListener onUpdateListener) {
         this.mContext = mContext;
         this.onUpdateListener = onUpdateListener;
         this.sharedPreferences = mContext.getSharedPreferences("apkUpdate", Context.MODE_WORLD_WRITEABLE);
         this.downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
     }
 
-    public static ApkUpdateTool getInstance(Context mContext, OnUpdateListener onUpdateListener) {
+    public static ApkUpgradeTool getInstance(Context mContext, OnUpgradeListener onUpdateListener) {
         if (instance == null) {
-            instance = new ApkUpdateTool(mContext, onUpdateListener);
+            instance = new ApkUpgradeTool(mContext, onUpdateListener);
         }
         return instance;
     }
@@ -60,7 +60,7 @@ public class ApkUpdateTool {
      *
      * @param updateInfo
      */
-    public void updateVersion(UpdateInfo updateInfo,boolean isShowToast) {
+    public void updateVersion(BaseUpdateInfo updateInfo, boolean isShowToast) {
         //正在下载过程中就不用再显示更新的弹窗了
         if (!isNeededShowDialog()) {
             return;
