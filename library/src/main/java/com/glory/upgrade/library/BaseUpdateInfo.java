@@ -1,15 +1,11 @@
 package com.glory.upgrade.library;
 
+import java.io.Serializable;
+
 /**
  * Created by liu.zhenrong on 2017/3/10.
  */
 
-public class BaseUpdateInfo {
-    public String appSize;
-    public String versionInfo;
-    public String updateUrl;
-    public String versionCode;
-    public String versionName;
-    public String version;
-    public int  forceUpdate;
+public class BaseUpdateInfo implements Serializable{
+    public int versionCode;
 }

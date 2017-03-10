@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.text.TextUtils;
 import android.widget.Toast;
 
 /**
@@ -69,13 +68,11 @@ public class ApkUpgradeTool {
             return;
         }
         this.updateInfo = updateInfo;
-        if (!TextUtils.isEmpty(updateInfo.version)) {
-            if (Integer.parseInt(updateInfo.version) > getPackageInfo().versionCode) {
-                initDialog();
-            } else {
-                if(isShowToast){
-                    Toast.makeText(mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
-                }
+        if (updateInfo.versionCode > getPackageInfo().versionCode) {
+            initDialog();
+        } else {
+            if(isShowToast){
+                Toast.makeText(mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
             }
         }
     }
