@@ -5,15 +5,11 @@ package com.glory.upgrade.library;
  */
 
 public interface OnUpgradeListener {
-    /**
-     * 初始化更新弹窗
-     * @param updateInfo
-     */
-    public void initDialog(final BaseUpdateInfo updateInfo);
 
     /**
-     * 权限监测有对应权限返回true,没有对应权限返回false
-     * @return
+     * 初始化更新弹窗
+     * @param builder
      */
-    public boolean checkSDPermision();
+    public void initDialog(final ApkUpgradeTool.Builder builder);
+
 }

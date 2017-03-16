@@ -21,24 +21,17 @@ public class Utils {
      * 监测版本升级
      */
     public static void checkVersion(final Activity activity, final boolean isShowToast) {
-        final ApkUpgradeTool updateTool = ApkUpgradeTool.getInstance(activity, new OnUpgradeListener() {
-            @Override
-            public void initDialog(BaseUpdateInfo updateInfo) {
-                DialogUtils.showUpdateDialog(activity, (UpdateInfo) updateInfo);
-            }
+        ApkUpgradeTool upgradeTool = new ApkUpgradeTool.Builder(activity)
+                .apkUrl("http://www.lianjia.com/client/download?ua=android&channel=homelink")
+                .versionCode(2)
+                .onUpdateListener(new OnUpgradeListener() {
+                    @Override
+                    public void initDialog(ApkUpgradeTool.Builder builder) {
+                        DialogUtils.showUpdateDialog(activity, builder);
+                    }
 
-            @Override
-            public boolean checkSDPermision() {
-                return checkPermision(activity);
-            }
-        });
-
-        UpdateInfo updateInfo = new UpdateInfo();
-        updateInfo.forceUpdate = 1;
-        updateInfo.versionCode = 2;
-        updateInfo.versionInfo = "升级新版本了";
-        updateInfo.updateUrl = "http://www.lianjia.com/client/download?ua=android&channel=homelink";
-        updateTool.updateVersion(updateInfo, isShowToast);
+                }).build();
+        upgradeTool.updateVersion(isShowToast);
 
     }
     /**

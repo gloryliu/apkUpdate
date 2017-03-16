@@ -1,78 +1,50 @@
 package com.glory.upgrade.library;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 /**
  * Created by liu.zhenrong on 2017/3/10.
  */
 
-public class ApkUpgradeTool {
-    private static ApkUpgradeTool instance;
-    private Context mContext;
-    private OnUpgradeListener onUpdateListener;
-    private BaseUpdateInfo updateInfo;
-    private SharedPreferences sharedPreferences;
-    private DownloadManager downloadManager;
+public final class ApkUpgradeTool {
 
-    private ApkUpgradeTool(Context mContext, OnUpgradeListener onUpdateListener) {
-        this.mContext = mContext;
-        this.onUpdateListener = onUpdateListener;
-        this.sharedPreferences = mContext.getSharedPreferences("apkUpdate", Context.MODE_WORLD_WRITEABLE);
-        this.downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+
+    private Builder builder;
+    private ApkUpgradeTool(Builder builder) {
+        this.builder = builder;
     }
 
-    public static ApkUpgradeTool getInstance(Context mContext, OnUpgradeListener onUpdateListener) {
-        if (instance == null) {
-            instance = new ApkUpgradeTool(mContext, onUpdateListener);
-        }
-        return instance;
-    }
-
-    public void recycle(){
-        if(null != instance){
-            instance = null;
-        }
-    }
-
-    /**
-     * 如果有sd卡的访问权限就显示升级的弹窗
-     */
-    private void initDialog() {
-        if (onUpdateListener != null) {
-            if (onUpdateListener.checkSDPermision()) {
-                onUpdateListener.initDialog(updateInfo);
-            }
-        } else {
-            throw new NullPointerException("onUpdateListener must not be null");
-        }
-
-    }
 
     /**
      * 判断当前是否最新版本
-     *
-     * @param updateInfo
+     * @param isShowToast //是否显示toast提示
      */
-    public void updateVersion(BaseUpdateInfo updateInfo, boolean isShowToast) {
+    public void updateVersion(boolean isShowToast) {
         //正在下载过程中就不用再显示更新的弹窗了
         if (!isNeededShowDialog()) {
             return;
         }
-        if (updateInfo == null) {
-            return;
-        }
-        this.updateInfo = updateInfo;
-        if (updateInfo.versionCode > getPackageInfo().versionCode) {
-            initDialog();
+
+        //判断是否应该显示升级提示
+        if (builder.versionCode > getPackageInfo().versionCode) {
+            if (checkPermision(builder.mContext)) {
+                builder.onUpdateListener.initDialog(builder);
+            }
         } else {
             if(isShowToast){
-                Toast.makeText(mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
+                Toast.makeText(builder.mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -82,10 +54,10 @@ public class ApkUpgradeTool {
      *
      * @return
      */
-    public PackageInfo getPackageInfo() {
+    private PackageInfo getPackageInfo() {
         PackageInfo info = null;
         try {
-            info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0);
+            info = builder.mContext.getPackageManager().getPackageInfo(builder.mContext.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -99,11 +71,11 @@ public class ApkUpgradeTool {
      */
     private boolean isNeededShowDialog() {
         boolean result = true;
-        long enqueue = sharedPreferences.getLong("enqueue", -1);
+        long enqueue = builder.sharedPreferences.getLong("enqueue", -1);
         if (enqueue == -1) {
             result = true;
         } else {
-            result = isNeedDownload(enqueue, downloadManager);
+            result = isNeedDownload(enqueue, builder.downloadManager);
         }
         return result;
     }
@@ -115,7 +87,7 @@ public class ApkUpgradeTool {
      * @param downloadManager
      * @return
      */
-    private static boolean isNeedDownload(long id, DownloadManager downloadManager) {
+    private  boolean isNeedDownload(long id, DownloadManager downloadManager) {
 
         boolean isNeedDownloadAgain = true;
 
@@ -203,5 +175,130 @@ public class ApkUpgradeTool {
 
         }
         return isNeedDownloadAgain;
+    }
+
+    /**
+     * 获取sd卡权限
+     * @param mContext
+     * @return
+     */
+    private boolean checkPermision(Context mContext) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(mContext,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions((Activity) mContext,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        2);
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Builder设计模式
+     */
+    public static final class Builder{
+        private Context mContext;
+        private SharedPreferences sharedPreferences;
+        private DownloadManager downloadManager;
+        private OnUpgradeListener onUpdateListener;
+        private int versionCode = -1;//版本号
+        private String versionInfo = "";//升级文案
+        private boolean forceUpdate = false;//是否强制升级
+        private String apkUrl = "";//apk下载地址
+
+        public Builder(Context mContext){
+            this.mContext = mContext;
+            this.sharedPreferences = mContext.getSharedPreferences("apkUpdate", Context.MODE_WORLD_WRITEABLE);
+            this.downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+        }
+
+        /**
+         * 设置回调监听器
+         * @param onUpdateListener
+         * @return
+         */
+        public Builder onUpdateListener(OnUpgradeListener onUpdateListener){
+            this.onUpdateListener = onUpdateListener;
+            return this;
+        }
+
+        /**
+         * 版本说明
+         * @param versionInfo
+         * @return
+         */
+        public Builder versionInfo(String versionInfo){
+            this.versionInfo = versionInfo;
+            return this;
+        }
+
+        /**
+         * 设置版本号
+         * @param versionCode
+         * @return
+         */
+        public Builder versionCode(int versionCode){
+            this.versionCode = versionCode;
+            return this;
+        }
+
+        /**
+         * 设置apk下载地址
+         * @param apkUrl
+         * @return
+         */
+        public Builder apkUrl(String apkUrl){
+            this.apkUrl = apkUrl;
+            return this;
+        }
+
+
+        /**
+         * 升级描述信息
+         * @return
+         */
+        public String getVersionInfo() {
+            return versionInfo;
+        }
+
+        /**
+         * 是否强制升级
+         * @return
+         */
+        public boolean isForceUpdate() {
+            return forceUpdate;
+        }
+
+        /**
+         * 获得apkurl
+         * @return
+         */
+        public String getApkUrl() {
+            return apkUrl;
+        }
+
+        public ApkUpgradeTool build(){
+
+            if (TextUtils.isEmpty(apkUrl)) {
+                throw new IllegalStateException("apkUrl required.");
+            }
+
+            if (versionCode<0){
+                throw  new IllegalStateException("versionCode required.");
+            }
+
+            if (null == onUpdateListener){
+                throw new NullPointerException("onUpdateListener null");
+            }
+
+            return new ApkUpgradeTool(this);
+        }
+
     }
 }

@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.glory.upgrade.R;
 import com.glory.upgrade.bean.UpdateInfo;
 import com.glory.upgrade.library.ApkDownloadService;
+import com.glory.upgrade.library.ApkUpgradeTool;
 
 /**
  * Created by liu.zhenrong on 2017/3/10.
@@ -24,20 +25,19 @@ public class DialogUtils {
 
     /**
      * 显示app升级的dialog
-     *
      * @param context
-     * @param updateInfo
+     * @param builder
      */
-    public static void showUpdateDialog(final Context context, final UpdateInfo updateInfo) {
+    public static void showUpdateDialog(final Context context, final ApkUpgradeTool.Builder builder) {
         View view = LayoutInflater.from(context).inflate(
                 R.layout.dialog_version_update, null);
         TextView info = (TextView) view.findViewById(R.id.tv_info);
-        info.setText(Html.fromHtml(updateInfo.versionInfo));
+        info.setText(Html.fromHtml(builder.getVersionInfo()));
         TextView mNegativeBtn = (TextView) view.findViewById(R.id.positive_btn);
         ImageView mPositiveBtn = (ImageView) view.findViewById(R.id.negative_btn);
         final Dialog dialog = new Dialog(context, R.style.dialog);
         dialog.setContentView(view);
-        if (updateInfo.forceUpdate == 1) {
+        if (builder.isForceUpdate()) {
             dialog.setCanceledOnTouchOutside(false);
             mPositiveBtn.setVisibility(View.GONE);
         } else {
@@ -49,7 +49,7 @@ public class DialogUtils {
             public boolean onKey(DialogInterface dialog, int keyCode,
                                  KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    if (updateInfo.forceUpdate == 1) {
+                    if (builder.isForceUpdate()) {
                         return true;
                     }
                     if (dialog != null) {
@@ -66,7 +66,7 @@ public class DialogUtils {
             @Override
             public void onClick(View v) {//确认更新
                 Intent intent = new Intent(context, ApkDownloadService.class);
-                intent.putExtra("url", updateInfo.updateUrl);
+                intent.putExtra("url", builder.getApkUrl());
                 context.startService(intent);
                 if (dialog != null) {
                     dialog.dismiss();
