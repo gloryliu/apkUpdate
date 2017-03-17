@@ -16,7 +16,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 /**
- * Created by liu.zhenrong on 2017/3/10.
+ * Created by liu on 2017/3/10.
  */
 
 public final class ApkUpgradeTool {

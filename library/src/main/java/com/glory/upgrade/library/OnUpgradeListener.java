@@ -1,7 +1,7 @@
 package com.glory.upgrade.library;
 
 /**
- * Created by liu.zhenrong on 2017/3/10.
+ * Created by liu on 2017/3/10.
  */
 
 public interface OnUpgradeListener {

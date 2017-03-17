@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -21,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by liu.zhenrong on 2017/3/10.
+ * Created by liu on 2017/3/10.
  */
 
 public class ApkDownloadService extends Service {
@@ -30,7 +29,7 @@ public class ApkDownloadService extends Service {
     private BroadcastReceiver receiver;
     private String url;
     private String filePath = "";//不用修改
-    private String fileName = "jyall.apk";//会读取app的name
+    private String fileName = "temp.apk";//会读取app的name
     private SharedPreferences sharedPreferences;
 
 
@@ -110,7 +109,9 @@ public class ApkDownloadService extends Service {
         sharedPreferences.edit().putLong("enqueue", enqueue).commit();
     }
 
-    //获取应用程序名称
+    /**
+     * 获取应用程序名称
+     */
     private void getApplicationName(){
         ActivityManager am = (ActivityManager)this.getSystemService(ACTIVITY_SERVICE);
         List l = am.getRunningAppProcesses();
@@ -120,7 +121,6 @@ public class ApkDownloadService extends Service {
             ActivityManager.RunningAppProcessInfo info = (ActivityManager.RunningAppProcessInfo)(i.next());
             try {
                 CharSequence c = pm.getApplicationLabel(pm.getApplicationInfo(info.processName, PackageManager.GET_META_DATA));
-                Log.w("LABEL", c.toString());
                 fileName = c.toString();
             }catch(Exception e) {
 

@@ -6,7 +6,7 @@ import com.glory.upgrade.library.ApkUpgradeTool;
 import com.glory.upgrade.library.OnUpgradeListener;
 
 /**
- * Created by liu.zhenrong on 2017/3/10.
+ * Created by liu on 2017/3/10.
  */
 
 public class Utils {

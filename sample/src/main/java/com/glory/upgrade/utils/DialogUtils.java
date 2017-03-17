@@ -15,7 +15,7 @@ import com.glory.upgrade.R;
 import com.glory.upgrade.library.ApkUpgradeTool;
 
 /**
- * Created by liu.zhenrong on 2017/3/10.
+ * Created by liu on 2017/3/10.
  */
 
 public class DialogUtils {
