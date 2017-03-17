@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -204,6 +205,7 @@ public final class ApkUpgradeTool {
      */
     public static final class Builder{
         private Context mContext;
+        private Intent startService;
         private SharedPreferences sharedPreferences;
         private DownloadManager downloadManager;
         private OnUpgradeListener onUpdateListener;
@@ -216,6 +218,7 @@ public final class ApkUpgradeTool {
             this.mContext = mContext;
             this.sharedPreferences = mContext.getSharedPreferences("apkUpdate", Context.MODE_WORLD_WRITEABLE);
             this.downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+            this.startService = new Intent(mContext, ApkDownloadService.class);
         }
 
         /**
@@ -283,20 +286,28 @@ public final class ApkUpgradeTool {
             return apkUrl;
         }
 
+        /**
+         * 启动下载服务
+         */
+        public void startDownload(){
+            this.mContext.startService(this.startService);
+        }
+
         public ApkUpgradeTool build(){
 
             if (TextUtils.isEmpty(apkUrl)) {
-                throw new IllegalStateException("apkUrl required.");
+                throw new IllegalStateException("apkUrl isEmpty");
             }
 
             if (versionCode<0){
-                throw  new IllegalStateException("versionCode required.");
+                throw  new IllegalStateException("versionCode required >0");
             }
 
             if (null == onUpdateListener){
                 throw new NullPointerException("onUpdateListener null");
             }
 
+            this.startService.putExtra("url", this.apkUrl);
             return new ApkUpgradeTool(this);
         }
 

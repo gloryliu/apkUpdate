@@ -3,7 +3,6 @@ package com.glory.upgrade.utils;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.text.Html;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -13,8 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.glory.upgrade.R;
-import com.glory.upgrade.bean.UpdateInfo;
-import com.glory.upgrade.library.ApkDownloadService;
 import com.glory.upgrade.library.ApkUpgradeTool;
 
 /**
@@ -37,7 +34,7 @@ public class DialogUtils {
         ImageView mPositiveBtn = (ImageView) view.findViewById(R.id.negative_btn);
         final Dialog dialog = new Dialog(context, R.style.dialog);
         dialog.setContentView(view);
-        if (builder.isForceUpdate()) {
+        if (!builder.isForceUpdate()) {
             dialog.setCanceledOnTouchOutside(false);
             mPositiveBtn.setVisibility(View.GONE);
         } else {
@@ -65,12 +62,8 @@ public class DialogUtils {
             @SuppressWarnings("deprecation")
             @Override
             public void onClick(View v) {//确认更新
-                Intent intent = new Intent(context, ApkDownloadService.class);
-                intent.putExtra("url", builder.getApkUrl());
-                context.startService(intent);
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
+                builder.startDownload();
+                dialog.dismiss();
             }
         });
         mPositiveBtn.setOnClickListener(new View.OnClickListener() {
