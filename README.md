@@ -8,7 +8,7 @@ A Android upgrade Library
 	        compile 'com.github.gloryliu:apkUpdate:1.0.0'
 	}
 
-```xml
+```
 2、在需要升级版本的地方加入以下代码
 ```java
 
@@ -28,4 +28,4 @@ A Android upgrade Library
                         //是否显示toast提示
                         .updateVersion(true);
 
-```java
+```
