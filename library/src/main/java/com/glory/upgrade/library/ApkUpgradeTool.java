@@ -27,13 +27,10 @@ public final class ApkUpgradeTool {
         this.builder = builder;
     }
 
-
     /**
-     * 判断当前是否最新版本
-     * @param isShowToast //是否显示toast提示
+     * 开始下载
      */
-    public void updateVersion(boolean isShowToast) {
-        //正在下载过程中就不用再显示更新的弹窗了
+    public void startDownload(){
         if (!isNeededShowDialog()) {
             return;
         }
@@ -44,10 +41,12 @@ public final class ApkUpgradeTool {
                 builder.onUpdateListener.initDialog(builder);
             }
         } else {
-            if(isShowToast){
+            if(this.builder.isShowToast){
                 Toast.makeText(builder.mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
             }
         }
+
+        this.builder.mContext.startService(this.builder.startService);
     }
 
     /**
@@ -209,6 +208,7 @@ public final class ApkUpgradeTool {
         private SharedPreferences sharedPreferences;
         private DownloadManager downloadManager;
         private OnUpgradeListener onUpdateListener;
+        private boolean isShowToast = false;
         private int versionCode = -1;//版本号
         private String versionInfo = "";//升级文案
         private boolean forceUpdate = false;//是否强制升级
@@ -228,6 +228,16 @@ public final class ApkUpgradeTool {
          */
         public Builder onUpdateListener(OnUpgradeListener onUpdateListener){
             this.onUpdateListener = onUpdateListener;
+            return this;
+        }
+
+        /**
+         * 是否显示toast
+         * @param isShowToast
+         * @return
+         */
+        public Builder isShowToast(boolean isShowToast){
+            this.isShowToast = isShowToast;
             return this;
         }
 
@@ -295,13 +305,19 @@ public final class ApkUpgradeTool {
             return apkUrl;
         }
 
+
         /**
-         * 启动下载服务
+         * 获取是否显示toast
+         * @return
          */
-        public void startDownload(){
-            this.mContext.startService(this.startService);
+        public boolean isShowToast() {
+            return isShowToast;
         }
 
+        /**
+         * 构建升级工具
+         * @return
+         */
         public ApkUpgradeTool build(){
 
             if (TextUtils.isEmpty(apkUrl)) {
