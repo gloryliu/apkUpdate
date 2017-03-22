@@ -19,6 +19,8 @@ public class Utils {
                 .apkUrl("http://www.lianjia.com/client/download?ua=android&channel=homelink")
                 //版本号
                 .versionCode(2)
+                //强制升级
+                .forceUpdate(true)
                 //升级回调用了初始化dialog
                 .onUpdateListener(new OnUpgradeListener() {
                     @Override

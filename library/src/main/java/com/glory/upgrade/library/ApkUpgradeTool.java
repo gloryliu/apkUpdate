@@ -232,6 +232,15 @@ public final class ApkUpgradeTool {
         }
 
         /**
+         * 是否强制升级
+         * @param forceUpdate
+         * @return
+         */
+        public Builder forceUpdate(boolean forceUpdate){
+            this.forceUpdate = forceUpdate;
+            return this;
+        }
+        /**
          * 版本说明
          * @param versionInfo
          * @return
