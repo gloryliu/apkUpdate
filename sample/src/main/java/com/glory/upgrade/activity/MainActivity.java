@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //Utils.checkVersion(this,true);
+        Utils.checkVersion(this,true);
     }
 
     private PackageInfo getPackageInfo() {
