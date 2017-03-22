@@ -1,15 +1,25 @@
 # apkUpdate
 A Android upgrade Library
-# 使用案例
-1、在build.gradle中加入库引用
+# How to use :
+# Step 1. Add the JitPack repository to your build file
+Add it in your root build.gradle at the end of repositories:
+```xml
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+# Step 2. Add the dependency
 ```xml
 
 	dependencies {
-	        compile 'com.github.gloryliu:apkUpdate:1.0.0'
-	}
+    	        compile 'com.github.gloryliu:apkUpdate:1.0.0-SNAPSHOT'
+    }
 
 ```
-2、在需要升级版本的地方加入以下代码
+# Step 3.Add the following code in place need to upgrade
 ```java
 
        new ApkUpgradeTool.Builder(MainActivity.this)
