@@ -15,7 +15,7 @@ allprojects {
 ```xml
 
 	dependencies {
-    	        compile 'com.github.gloryliu:apkUpdate:1.0.0-SNAPSHOT'
+    	        compile 'com.github.gloryliu:apkUpdate:v1.0.1'
     }
 
 ```
