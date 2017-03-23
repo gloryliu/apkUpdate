@@ -6,10 +6,11 @@ package com.glory.upgrade.library;
 
 public interface OnUpgradeListener {
 
+
     /**
      * 初始化更新弹窗
-     * @param builder
+     * @param upgradeTool
      */
-    public void initDialog(final ApkUpgradeTool.Builder builder);
+    public void initDialog(final ApkUpgradeTool upgradeTool);
 
 }

@@ -28,25 +28,39 @@ public final class ApkUpgradeTool {
     }
 
     /**
-     * 开始下载
+     * 开始监测
      */
-    public void startDownload(){
+    public void checkVersion(boolean isShowToast){
+
+        if(null == builder){
+            throw new NullPointerException("builder should init");
+        }
+
         if (!isNeededShowDialog()) {
+
             return;
         }
 
         //判断是否应该显示升级提示
         if (builder.versionCode > getPackageInfo().versionCode) {
             if (checkPermision(builder.mContext)) {
-                builder.onUpdateListener.initDialog(builder);
+                builder.onUpdateListener.initDialog(this);
             }
         } else {
-            if(this.builder.isShowToast){
+            if(isShowToast){
                 Toast.makeText(builder.mContext, "当前是最新版本！", Toast.LENGTH_LONG).show();
             }
+            return;
         }
 
-        this.builder.mContext.startService(this.builder.startService);
+    }
+
+    /**
+     * 获取builder
+     * @return
+     */
+    public Builder getBuilder() {
+        return builder;
     }
 
     /**
@@ -208,7 +222,6 @@ public final class ApkUpgradeTool {
         private SharedPreferences sharedPreferences;
         private DownloadManager downloadManager;
         private OnUpgradeListener onUpdateListener;
-        private boolean isShowToast = false;
         private int versionCode = -1;//版本号
         private String versionInfo = "";//升级文案
         private boolean forceUpdate = false;//是否强制升级
@@ -228,16 +241,6 @@ public final class ApkUpgradeTool {
          */
         public Builder onUpdateListener(OnUpgradeListener onUpdateListener){
             this.onUpdateListener = onUpdateListener;
-            return this;
-        }
-
-        /**
-         * 是否显示toast
-         * @param isShowToast
-         * @return
-         */
-        public Builder isShowToast(boolean isShowToast){
-            this.isShowToast = isShowToast;
             return this;
         }
 
@@ -282,6 +285,14 @@ public final class ApkUpgradeTool {
 
 
         /**
+         * 获取启动下载服务意图
+         * @return
+         */
+        public Intent getStartService() {
+            return startService;
+        }
+
+        /**
          * 升级描述信息
          * @return
          */
@@ -303,15 +314,6 @@ public final class ApkUpgradeTool {
          */
         public String getApkUrl() {
             return apkUrl;
-        }
-
-
-        /**
-         * 获取是否显示toast
-         * @return
-         */
-        public boolean isShowToast() {
-            return isShowToast;
         }
 
         /**
