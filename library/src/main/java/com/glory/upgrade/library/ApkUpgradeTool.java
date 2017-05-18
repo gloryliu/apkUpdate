@@ -222,16 +222,36 @@ public final class ApkUpgradeTool {
         private SharedPreferences sharedPreferences;
         private DownloadManager downloadManager;
         private OnUpgradeListener onUpdateListener;
-        private int versionCode = -1;//版本号
-        private String versionInfo = "";//升级文案
-        private boolean forceUpdate = false;//是否强制升级
-        private String apkUrl = "";//apk下载地址
+        private Config.UpdateMode updateMode;           //升级模式，全量升级、增量升级
+        private int versionCode = -1;                   //版本号
+        private String versionInfo = "";                //升级文案
+        private boolean forceUpdate = false;            //是否强制升级
+        private String apkUrl = "";                     //apk下载地址
+        private String provider = "";                   //provider:authorities
 
         public Builder(Context mContext){
             this.mContext = mContext;
-            this.sharedPreferences = mContext.getSharedPreferences("apkUpdate", Context.MODE_WORLD_WRITEABLE);
+            this.sharedPreferences = mContext.getSharedPreferences(Config.SHARE_FILE_NAME, Context.MODE_PRIVATE);
             this.downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
             this.startService = new Intent(mContext, ApkDownloadService.class);
+        }
+
+        /**
+         * 针对7.0文件权限配置
+         * @param provider
+         */
+        public Builder setProvider(String provider) {
+            this.provider = provider;
+            return this;
+        }
+
+        /**
+         * 设置升级模式
+         * @param updateMode
+         */
+        public Builder setUpdateMode(Config.UpdateMode updateMode) {
+            this.updateMode = updateMode;
+            return this;
         }
 
         /**
@@ -272,6 +292,7 @@ public final class ApkUpgradeTool {
             this.versionCode = versionCode;
             return this;
         }
+
 
         /**
          * 设置apk下载地址
@@ -331,10 +352,27 @@ public final class ApkUpgradeTool {
             }
 
             if (null == onUpdateListener){
-                throw new NullPointerException("onUpdateListener null");
+                throw new NullPointerException("onUpdateListener is null");
+            }
+
+            if(null == updateMode){
+                throw new NullPointerException("updateMode is null");
+            }
+
+            if (TextUtils.isEmpty(provider)){
+                throw new IllegalStateException("provider is null");
             }
 
             this.startService.putExtra("url", this.apkUrl);
+            this.startService.putExtra("provider", provider);
+            switch (this.updateMode){
+                case MODE_COVER:
+                    this.startService.putExtra("updateMode",1);
+                    break;
+                case MODE_INCREM:
+                    this.startService.putExtra("updateMode",2);
+                    break;
+            }
             return new ApkUpgradeTool(this);
         }
 

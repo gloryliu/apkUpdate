@@ -10,8 +10,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -28,9 +31,12 @@ public class ApkDownloadService extends Service {
     private long enqueue;
     private BroadcastReceiver receiver;
     private String url;
-    private String filePath = "";//不用修改
-    private String fileName = "temp.apk";//会读取app的name
+    private String filePath = "";                       //文件的下载路径
+    private String fileName = "dwonloadtemp.apk";       //会读取app的name
+    private String newApk = "newApk.apk";               //打补丁后的文件
+    private int updateMode = 1;
     private SharedPreferences sharedPreferences;
+    private String provider = "";
 
 
     @Override
@@ -40,25 +46,38 @@ public class ApkDownloadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        updateMode = intent.getIntExtra("updateMode",1);
         url = intent.getStringExtra("url");
+        provider = intent.getStringExtra("provider");
+
         getApplicationName();
-        sharedPreferences = getSharedPreferences("apkUpdate", MODE_WORLD_WRITEABLE);
+        sharedPreferences = getSharedPreferences(Config.SHARE_FILE_NAME, MODE_PRIVATE);
+
         if (!TextUtils.isEmpty(url)) {
             receiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    File fileapk = new File(filePath + "/" + fileName);
+                    final File fileapk = new File(filePath + "/" + fileName);
                     if(fileapk==null){
                         return;
                     }else {
+
                         if(fileapk.exists()){
-                            //下载完成后状态改变为1
-                            intent = new Intent(Intent.ACTION_VIEW);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            intent.setDataAndType(Uri.fromFile(new File(filePath + "/" + fileName)),
-                                    "application/vnd.android.package-archive");
-                            startActivity(intent);
-                            stopSelf();
+
+                            if(1 == updateMode){
+                                //全量
+                                installApk(context,fileapk);
+                                stopSelf();
+                            }else if(2 == updateMode){
+                                //增量
+                                File newfile = new File(filePath + "/" + newApk);
+                                BsPatchUtil.patch(getApplicationContext(),fileapk.getAbsolutePath(),newfile.getAbsolutePath());
+                                if(newfile.exists()){
+                                    installApk(context,newfile);
+                                }
+                                stopSelf();
+                            }
+
                         }
                     }
                 }
@@ -81,22 +100,23 @@ public class ApkDownloadService extends Service {
      * 开始下载
      */
     private void startDownload() {
-        File filedir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        if (filedir != null) {
-            //获取文件从发的绝对路径
-            filePath = filedir.getAbsoluteFile().toString();
+
+        File fileDir = this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (fileDir != null) {
+            if(!fileDir.exists()){
+                fileDir.mkdir();
+            }
+            filePath = fileDir.getAbsolutePath();
         }
-        if(TextUtils.isEmpty(fileName)){
-            Toast.makeText(this,"文件名空",Toast.LENGTH_LONG).show();
-            return;
-        }
+
         //该文件夹下已经有的话就删除
-        File apkfile = new File(filedir, fileName);
+        File apkfile = new File(fileDir, fileName);
         if (apkfile != null) {
             if (apkfile.exists()) {
                 apkfile.delete();
             }
         }
+
         dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(
                 Uri.parse(url));
@@ -104,7 +124,7 @@ public class ApkDownloadService extends Service {
         request.setTitle(fileName);
         request.setDescription("");
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+        request.setDestinationInExternalFilesDir(getApplicationContext(),Environment.DIRECTORY_DOWNLOADS, fileName);
         enqueue = dm.enqueue(request);
         sharedPreferences.edit().putLong("enqueue", enqueue).commit();
     }
@@ -121,10 +141,29 @@ public class ApkDownloadService extends Service {
             ActivityManager.RunningAppProcessInfo info = (ActivityManager.RunningAppProcessInfo)(i.next());
             try {
                 CharSequence c = pm.getApplicationLabel(pm.getApplicationInfo(info.processName, PackageManager.GET_META_DATA));
-                fileName = c.toString();
+                fileName = c.toString()+".apk";
             }catch(Exception e) {
 
             }
         }
+    }
+
+    /**
+     * 安装apk
+     * @param context
+     * @param file
+     */
+    private void installApk(Context context,File file){
+        Uri data;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            data = FileProvider.getUriForFile(context, provider, file);
+        } else {
+            data = Uri.fromFile(file);
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(data, "application/vnd.android.package-archive");
+        startActivity(intent);
     }
 }
